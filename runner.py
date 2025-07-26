@@ -69,6 +69,21 @@ class Context:
         return str({"cont":this._contexts,"pass":this._pass,"fail":this._fail,"done":this._done,"good":this._good,"bad":this._bad})
     def __repr__(this):
         return str(this)
+    
+    def __add__(this,c):
+        if not isinstance(c,Context): raise Exception(f"add took type: {type(c)}")
+        new = Context(this)
+        new._pass += c._pass
+        new._fail += c._fail
+        new._done += c._done
+        new._good += c._good
+        new._bad += c._bad
+        for con,fr in this.contexts:
+            new.addContext(con,fr)
+        for con,fr in c.contexts:
+            new.addContext(con,fr)
+        return new
+        
 
 def con2dict(con):
     """Takes a context as a tuple of tuples, returns a dict(varname->val)"""
@@ -145,7 +160,26 @@ def doBlock(block,old):
     for line in block:
         new = Context(old)
         if line[0] == "select":
-            pass # TODO
+            var = line[1]
+            expr = line[2]
+            expr2 = line[3]
+            for con,fr in old.contexts:
+                cond = con2dict(con)
+                res = Eval(expr,cond)
+                news = []
+                if not isinstance(res,tuple): raise Exception("Select took non-list")
+                for r in res:
+                    d = dict(cond)
+                    d[var] = r
+                    news.append(d)
+                new2 = []
+                for n in news:
+                    res = Eval(expr2,n)
+                    if not isinstance(res,int): raise Exception("select condition was non-int")
+                    if res: new2.append(n)
+                l = len(new2)
+                for n in new2:
+                    new.addContext(n,fr / l)
         elif line[0] == "set":
             var = line[1]
             expr = line[2]
@@ -155,11 +189,53 @@ def doBlock(block,old):
                 cond[var] = res
                 new.addContext(cond,fr)
         elif line[0] == "if":
-            pass # TODO
+            # Split
+            yes = Context(old)
+            no = Context(old)
+            for con,fr in old.contexts:
+                cond = con2dict()
+                res = Eval(line[1],cond)
+                if not isinstance(res,int): raise Exception(f"'if' didn't return int: {line[1]}")
+                if res:
+                    yes.addContext(cond,fr)
+                else:
+                    no.addContext(cond,fr)
+            res1 = doBlock(line[2],yes)
+            res2 = doBlock(line[3],no)
+            new = res1 + res2
         elif line[0] == "discard":
-            pass # TODO
+            for con,fr in old.contexts:
+                cond = con2dict(con)
+                if line[1] in cond: del cond[line[1]]
+                new.addContext(cond,fr)
         elif line[0] == "for":
-            pass # TODO
+            options = dict()
+            var = line[1]
+            for con,fr in old.contexts:
+                cond = con2dict(con)
+                res = Eval(line[2],cond)
+                if not isinstance(res,tuple): raise Exception(f"'for' didn't take tuple: {line[2]}")
+                if res not in options:
+                    options[res] = Context(old)
+                options[res].addContext(cond,fr)
+            res = Context()
+            for tpl in options:
+                old2 = options[tpl]
+                for i in tpl:
+                    # Update vars
+                    new = Context(old2)
+                    for con,fr in old2.contexts:
+                        cond = con2dict(con)
+                        cond[var] = i
+                        new.addContext(cond,fr)
+                    new = doBlock(line[3],new)
+                res = res + new
+            new = res
+        elif line[0] == "print":
+            for con,fr in old.contexts:
+                cond = con2dict(con)
+                print(Eval(line[1],cond))
+            new = old
         elif line[0] == "pass":
             for _,fr in old.contexts:
                 new.dopass(fr)

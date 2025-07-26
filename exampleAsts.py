@@ -16,5 +16,6 @@ def getExample(st):
     if st == "10": return [("set","a",("or",1,"a"))]
     if st == "11": return [("set","a",("and",1,"a"))]
     if st == "12": return [("set","a",("or",0,"a"))]
-    if st == "13": return [("select","a",(",",1,(",",2,3)))] # TODO
+    if st == "13": return [("select","a",(",",1,(",",2,3)),1)] # TODO
+    if st == "14": return [("for","a",("to",1,3),[("print","a")])]
     raise Exception("Example not found")
