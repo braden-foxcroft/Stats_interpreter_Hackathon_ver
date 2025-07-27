@@ -1,0 +1,10 @@
+
+
+
+select toss from 0,1
+if toss == 1
+	good
+else
+	bad
+	bad
+debug

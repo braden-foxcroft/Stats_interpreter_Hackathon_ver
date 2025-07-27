@@ -7,5 +7,4 @@ if b + a != 4
 	discard b
 
 print 1
-pass
 

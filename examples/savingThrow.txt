@@ -1,0 +1,24 @@
+
+
+
+# Flip a coin, if heads, live 
+# if tails, roll a die. if 6, live
+# assuming you live, what are the odds of a heads?
+
+
+select toss from 0,1
+if toss == 1
+	set win = 1
+else
+	select roll from 1 to 6
+	if roll == 6
+		set win = 1
+	else
+		set win = 0
+
+
+bychance win
+if toss == 1
+	pass
+fail
+

@@ -261,6 +261,10 @@ def parseLine(line,lines):
         line.pop
         expr = parseExp(line)
         block = parseBlock(Feeder(getBlock(lines)))
+        if lines.peek != None and lines.peek.peek == "else":
+            lines.pop
+            block2 = parseBlock(Feeder(getBlock(lines)))
+            return ("if",expr,block,block2)
         return ("if",expr,block,[])
     if line.peek == "for":
         line.pop

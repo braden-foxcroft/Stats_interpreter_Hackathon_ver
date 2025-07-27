@@ -48,12 +48,12 @@ if args.T:
     printTree(ast)
     exit(0)
 
-    
-    
 
+    
+# Should actually be called 'ContextCollection'    
 class Context:
     """Contains:
-    - dict of sorted((var,val)) -> frac odds
+    - dict of tuple(sorted((var,val))) -> frac odds
     - sums: frac pass, frac fail, frac done, frac good, frac bad"""
     def __init__(this,contexts=None):
         if isinstance(contexts,Context):
@@ -326,7 +326,7 @@ if not goodBad and not passFail:
     print("No result.")
     exit(1)
 if goodBad and not passFail:
-    print(dispFrac(context._good / (context._good / context._bad),args.p))
+    print(dispFrac(context._good / (context._good + context._bad),args.p))
 elif goodBad and passFail:
     print("good / (good + bad) =", dispFrac(context._good / (context._good + context._bad),args.p))
     print("pass / (pass + fail) =", dispFrac(context._pass / (context._pass + context._fail),args.p))
