@@ -32,6 +32,8 @@ def parseExp1(feed):
         left = (oper,left,right)
     return left
 
+parseExp = parseExp1
+
 def parseExp2(feed):
     left = parseExp3(feed)
     while feed.peek in {"and","or"}:
@@ -99,6 +101,7 @@ tokens = {
     ')': 'LEFT_PAREN',
     '+': 'BINARY_ADD',
     '-': 'BINARY_SUB',
+    '#': 'comment',
     # '//': 'BINARY_DIVIDE',
     '*': 'BINARY_MUL',
     '-': 'UNARY_NEGATIVE',
@@ -151,6 +154,9 @@ class Feeder:
 def lex(line):
     # "select a from 1,2,3" becomes ["select",... etc.]
     res = []
+    while line.peek == "\t": res.append(line.pop)
+    if line.peek == "#": # Comment
+        while line.peek != None: line.pop
     string = ""
     while line.peek != None:
         while line.peek != None and line.peek.isspace(): line.pop
@@ -204,21 +210,91 @@ def lex(line):
                 continue
             while line.peek!=None and line.peek in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM_":
                 string += line.pop
-            res.append(string)
+            if len(string): res.append(string)
             continue
         continue
     return res
 
- 
+def getBlock(lines):
+    res = []
+    while lines.peek.peek == "\t":
+        lines.peek.pop
+        res.append(lines.pop)
+    return res
+
+
+def parseLine(line,lines):
+    if line.peek == None: return None
+    if line.peek == "pass": return ("pass",)
+    if line.peek == "fail": return ("fail",)
+    if line.peek == "done": return ("done",)
+    if line.peek == "good": return ("good",)
+    if line.peek == "bad": return ("bad",)
+    if line.peek == "debug": return ("debug",)
+    if line.peek == "select":
+        line.pop
+        var = line.pop
+        if line.peek != "from": raise Exception(f"Expected from, got: {line.peek}")
+        line.pop
+        expr = parseExp(line)
+        if line.peek == "where":
+            line.pop
+            expr2 = parseExp(line)
+        else:
+            expr2 = 1
+        return ("select",var,expr,expr2)
+    if line.peek == "set":
+        line.pop
+        var = line.pop
+        if line.peek != "=": raise Exception(f"Expected '=', got: {line.peek}")
+        line.pop
+        expr = parseExp(line)
+        return ("set",var,expr)
+    if line.peek == "bychance":
+        line.pop
+        expr = parseExp(line)
+        return ("bychance",expr)
+    if line.peek == "discard":
+        line.pop
+        return ("discard",line.pop)
+    if line.peek == "if":
+        line.pop
+        expr = parseExp(line)
+        block = parseBlock(Feeder(getBlock(lines)))
+        return ("if",expr,block,[])
+    if line.peek == "for":
+        line.pop
+        var = line.pop
+        if line.peek not in {"from","in"}: raise Exception(f"Expected 'from' or 'in' in 'for' loop, got {line.peek}")
+        line.pop
+        expr = parseExp(line)
+        block = parseBlock(Feeder(getBlock(lines)))
+        return ("for",var,expr,block)
+    if line.peek == "print":
+        line.pop
+        expr = parseExp(line)
+        return ("print",expr)
+    raise Exception(f"Unknown command: {list(iter(lambda : line.pop,None))}")
+    
+    
+
+def parseBlock(lines):
+    res = []
+    while lines.peek != None:
+        line = lines.pop
+        if line.peek == None:
+            line.pop
+            continue
+        res.append(parseLine(line,lines))
+    return res
+    
+
+
 def compile(file):
-    with open(file) as f:
-        lines = f.readlines()
-        lines = Feeder([Feeder(line) for line in lines])
-        parsedTokens=[]
-        line = lines.peek()
-        parsedTokens.append(lex(line))#returns tokens 
-        tree = Parser(tokens)
-    return tree or None # Tree
+    lines = file.readlines()
+    lines = Feeder([Feeder(lex(Feeder(line))) for line in lines])
+    tree = parseBlock(lines)
+    return tree # Tree
 
 
 
@@ -242,4 +318,3 @@ def compile(file):
 # print(parseExp1(Feeder(lex(Feeder("a != c")))))
 # print(parseExp1(Feeder(lex(Feeder("not a")))))
 # print(parseExp1(Feeder(lex(Feeder("-a")))))
-print(parseExp1(Feeder(lex(Feeder("(1 and a)"))))) 

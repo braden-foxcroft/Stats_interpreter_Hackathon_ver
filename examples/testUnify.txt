@@ -1,0 +1,11 @@
+
+
+select a from 1,2
+select b from 1,2
+if b + a != 4
+	discard a
+	discard b
+
+print 1
+pass
+

@@ -7,12 +7,31 @@ from fractions import Fraction as Frac
 parser = argparse.ArgumentParser(description="An interpreter which solves stats problems")
 parser.add_argument("filename",help="the file to run")
 parser.add_argument("-p",help="Give a percentage result",action="store_true")
-parser.add_argument("-D",help="print debug info",action="store_true")
+parser.add_argument("-t",help="print the tree in raw form",action="store_true")
+parser.add_argument("-T",help="print the tree in Fancy form",action="store_true")
 parser.add_argument("-e",help="Use an example AST for testing",action="store",default=None)
 args = parser.parse_args()
 
-debug = args.D
-if debug: print(args)
+
+def printTree(tree,indent=0):
+    if isinstance(tree,list):
+        print("    " * indent + "list:")
+        for t in tree:
+            printTree(t,indent+1)
+        return
+    if isinstance(tree,str):
+        print("    " * indent + tree)
+        return
+    if isinstance(tree,int):
+        print("    " * indent + str(tree))
+        return
+    try:
+        i = iter(tree)
+        print("    " * indent + str(next(i)))
+        for t in i:
+            printTree(t,indent+1)
+    except:
+        print("    " * indent + str(tree))
 
 if args.filename != "":
     with open(args.filename) as file:
@@ -22,6 +41,15 @@ elif args.e:
     ast = exampleAsts.getExample(args.e)
 else:
     ast = []
+if args.t:
+    print(ast)
+    exit(0)
+if args.T:
+    printTree(ast)
+    exit(0)
+
+    
+    
 
 class Context:
     """Contains:
@@ -58,7 +86,7 @@ class Context:
     def addContext(this,new,chance):
         if isinstance(new,dict):
             new = tuple(sorted(new.items()))
-        if new in this.contexts:
+        if new in this._contexts:
             this._contexts[new] += chance
         else:
             this._contexts[new] = chance
@@ -83,7 +111,7 @@ class Context:
         for con,fr in c.contexts:
             new.addContext(con,fr)
         return new
-        
+
 
 def con2dict(con):
     """Takes a context as a tuple of tuples, returns a dict(varname->val)"""
@@ -184,16 +212,24 @@ def doBlock(block,old):
             var = line[1]
             expr = line[2]
             for con,fr in old.contexts:
-                res = Eval(expr,con)
                 cond = con2dict(con)
+                res = Eval(expr,cond)
                 cond[var] = res
                 new.addContext(cond,fr)
+        elif line[0] == "bychance":
+            expr = line[1]
+            for con,fr in old.contexts:
+                cond = con2dict(con)
+                res = Eval(expr,cond)
+                if not isinstance(res,int): raise Exception("got non-int in bychance statement")
+                if res:
+                    new.addContext(con,fr)
         elif line[0] == "if":
             # Split
             yes = Context(old)
-            no = Context(old)
+            no = Context()
             for con,fr in old.contexts:
-                cond = con2dict()
+                cond = con2dict(con)
                 res = Eval(line[1],cond)
                 if not isinstance(res,int): raise Exception(f"'if' didn't return int: {line[1]}")
                 if res:
@@ -214,23 +250,21 @@ def doBlock(block,old):
             for con,fr in old.contexts:
                 cond = con2dict(con)
                 res = Eval(line[2],cond)
-                if not isinstance(res,tuple): raise Exception(f"'for' didn't take tuple: {line[2]}")
+                if not isinstance(res,tuple): raise Exception(f"'for' didn't provide list: {line[2]}")
                 if res not in options:
-                    options[res] = Context(old)
+                    options[res] = Context()
                 options[res].addContext(cond,fr)
-            res = Context()
             for tpl in options:
                 old2 = options[tpl]
                 for i in tpl:
                     # Update vars
-                    new = Context(old2)
+                    new2 = Context(old2)
                     for con,fr in old2.contexts:
                         cond = con2dict(con)
                         cond[var] = i
-                        new.addContext(cond,fr)
-                    new = doBlock(line[3],new)
-                res = res + new
-            new = res
+                        new2.addContext(cond,fr)
+                    old2 = doBlock(line[3],new2)
+                new = new + old2
         elif line[0] == "print":
             for con,fr in old.contexts:
                 cond = con2dict(con)
@@ -245,6 +279,9 @@ def doBlock(block,old):
         elif line[0] == "done":
             for _,fr in old.contexts:
                 new.dodone(fr)
+        elif line[0] == "debug":
+            print(old)
+            new = old
         elif line[0] == "good":
             for con,fr in old.contexts:
                 new.dogood(fr)
@@ -262,11 +299,37 @@ def doBlock(block,old):
 def doprog(block):
     """Takes a program. Returns a context"""
     old = Context({():Frac(1,1)})
+    block += [("done",)]
     return doBlock(block,old)
     
+def dispFrac(frac,perc):
+    if perc:
+        print(str(int(frac * 10000) / 100) + "%")
 
-print(doprog(ast))
-
-
-
+context = doprog(ast)
+# Figure out what to display:
+goodBad = context._good + context._bad > 0
+passFail = context._pass + context._fail > 0
+if passFail:
+    # Handle 'done' cases. Mark them as whatever was not used. Fail if all 3 were used.
+    if context._done > 0 and context._pass > 0 and context._fail > 0:
+        print("Cannot have 'done', 'pass', and 'fail' together. Use 'bychance 0' to eliminate irrelevant possibilities instead.")
+        exit(1)
+    if context._done > 0 and context._pass == 0:
+        context._pass, context._done = context._done, context._pass
+        print("All unmarked possibilities marked as 'pass'")
+    if context._done > 0 and context._fail == 0:
+        context._fail, context._done = context._done, context._fail
+        print("All unmarked possibilities marked as 'fail'")
+if not goodBad and not passFail:
+    print("No result.")
+    exit(1)
+if goodBad and not passFail:
+    print(dispFrac(context._good / (context._good / context._bad),args.p))
+elif goodBad and passFail:
+    print("good / (good + bad) =", dispFrac(context._good / (context._good + context._bad),args.p))
+    print("pass / (pass + fail) =", dispFrac(context._pass / (context._pass + context._fail),args.p))
+else: # passFail without goodBad
+    print(context._pass / (context._pass + context._fail))
+exit(0)
 

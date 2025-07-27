@@ -1,4 +1,4 @@
-let doors = 1,2,3
+set doors = 1,2,3
 select prize from doors
 select playerChoice from doors
 
@@ -8,5 +8,4 @@ select switch from doors where switch != playerChoice and switch != host
 
 if switch == prize
 	pass
-else
-	fail
+fail

@@ -1,10 +1,9 @@
 
 
-
 set sum = 0
-for i from 1 to 100
+for i in 1 to 100
 	select toss from 0,1
-	sum = sum + toss
+	set sum = sum + toss
 	discard toss
 
 if sum == 70
