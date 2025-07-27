@@ -304,7 +304,8 @@ def doprog(block):
     
 def dispFrac(frac,perc):
     if perc:
-        print(str(int(frac * 10000) / 100) + "%")
+        return str(int(frac * 10000000000) / 100000000) + "%"
+    return frac
 
 context = doprog(ast)
 # Figure out what to display:
@@ -330,6 +331,6 @@ elif goodBad and passFail:
     print("good / (good + bad) =", dispFrac(context._good / (context._good + context._bad),args.p))
     print("pass / (pass + fail) =", dispFrac(context._pass / (context._pass + context._fail),args.p))
 else: # passFail without goodBad
-    print(context._pass / (context._pass + context._fail))
+    print(dispFrac(context._pass / (context._pass + context._fail),args.p))
 exit(0)
 

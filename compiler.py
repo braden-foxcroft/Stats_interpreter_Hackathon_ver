@@ -217,7 +217,7 @@ def lex(line):
 
 def getBlock(lines):
     res = []
-    while lines.peek.peek == "\t":
+    while lines.peek != None and lines.peek.peek == "\t":
         lines.peek.pop
         res.append(lines.pop)
     return res
