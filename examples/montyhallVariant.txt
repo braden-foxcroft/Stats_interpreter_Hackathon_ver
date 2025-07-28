@@ -1,3 +1,9 @@
+
+
+# A variant of the monty hall problem. In this variant, the host doesn't know which door has the prize, so he randomly opens one.
+# By chance, the door he opens is empty. The question is the same: what are the odds that you win if you switch? In this variant,
+# switching is actually inconsequential.
+
 set doors = 1,2,3
 select prize from doors
 select playerChoice from doors

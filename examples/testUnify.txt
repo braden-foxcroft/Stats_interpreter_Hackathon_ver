@@ -1,5 +1,8 @@
 
 
+# This code exists to show that cases get combined if their data is equivalent.
+# Notice that 'print 1' prints twice, instead of 4 times.
+
 select a from 1,2
 select b from 1,2
 if b + a != 4

@@ -1,4 +1,8 @@
 
+# What are the odds that 100 coin tosses will yield 70 heads?
+# consider using '-p' to show the answer in percentage form, though the exact answer is ((100 pick 70) / 2^100)
+# This also shows the 'unify' behavior: execution pathes with the same sum will join and become the same path, adding their probabilities.
+
 
 set sum = 0
 for i in 1 to 100

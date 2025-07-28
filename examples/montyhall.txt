@@ -1,3 +1,7 @@
+
+
+# A standard representation of the monty hall problem. The result determines the odds that switching will get you the prize.
+
 set doors = 1,2,3
 select prize from doors
 select playerChoice from doors

@@ -1,5 +1,12 @@
 
 
+# The 'sleeping beauty problem', proposed by Arnold Zuboff. Provided below, courtesy of wikipedia:
+# Some researchers are going to put you to sleep. During the two days that your sleep will last, they will briefly wake you up either once or twice, depending on the toss of a fair coin (Heads: once; Tails: twice). After each waking, they will put you back to sleep with a drug that makes you forget that waking. When you are first awakened, to what degree ought you believe that the outcome of the coin toss is Heads?
+
+# This problem explains why 'good' and 'bad' exist as commands: for when you want to know the odds of an event, but don't know where in the process you are. the 'done' command exists to exit the program in cases like these.
+
+# In this example, the participant bets on heads. The result of running the program (1/3) provides the betting odds (namely, 2-to-1) the participant must take to break even over a large number of trials.
+
 
 select toss from 0,1
 if toss == 1
@@ -7,4 +14,4 @@ if toss == 1
 else
 	bad
 	bad
-debug
+

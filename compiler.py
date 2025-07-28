@@ -151,6 +151,9 @@ class Feeder:
         self._nxt()
         return res
 
+def isAlphaNum(char):
+    return char in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM_"
+
 def lex(line):
     # "select a from 1,2,3" becomes ["select",... etc.]
     res = []
@@ -160,14 +163,13 @@ def lex(line):
     string = ""
     while line.peek != None:
         while line.peek != None and line.peek.isspace(): line.pop
+        if line.peek == None: continue
         if line.peek in tokens:
             res.append(line.pop)
-            continue
         elif line.peek=="/":
-            if line.pop == line.peek:
-                res.append("//")
-                line.pop
-                continue
+            if line.pop != line.peek: raise Exception(f"Expected '//', got '/{line.peek}'")
+            res.append("//")
+            line.pop
         elif line.peek=="!":
             line.pop
             if line.peek == "=":
@@ -175,7 +177,6 @@ def lex(line):
                 line.pop
             else:
                 res.append("!")
-            continue
         elif line.peek=="=":
             line.pop
             if line.peek == "=":
@@ -183,7 +184,6 @@ def lex(line):
                 line.pop
             else:
                 res.append("=")
-            continue
         elif line.peek=="<":
             line.pop
             if line.peek == "=":
@@ -191,7 +191,6 @@ def lex(line):
                 line.pop
             else:
                 res.append("<")
-            continue
         elif line.peek==">":
             line.pop
             if line.peek == "=":
@@ -199,20 +198,19 @@ def lex(line):
                 line.pop
             else:
                 res.append(">")
-            continue
-        else:
+        elif line.peek != None and line.peek.isdigit():
             string = ""
             # handle integers
             while line.peek!=None and line.peek.isdigit():
                 string+=line.pop
-            if len(string)!=0: 
-                res.append(int(string))
-                continue
-            while line.peek!=None and line.peek in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM_":
+            res.append(int(string))
+        elif line.peek != None and isAlphaNum(line.peek):
+            string = ""
+            while line.peek!=None and isAlphaNum(line.peek):
                 string += line.pop
-            if len(string): res.append(string)
-            continue
-        continue
+            res.append(string)
+        else:
+            raise Exception(f"Unexpected char: {line.peek}")
     return res
 
 def getBlock(lines):

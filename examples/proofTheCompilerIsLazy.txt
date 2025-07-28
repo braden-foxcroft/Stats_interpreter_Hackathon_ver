@@ -1,0 +1,12 @@
+
+# This is a program which parses and runs correctly, but only because of how many shortcuts the compiler takes.
+# To fix this, one would need to reserve keywords and operators, and check the validity of variable names.
+# Furthermore, the parser should validate whether each line ends where it thinks it does, instead of discarding any remaining tokens blindly.
+# Many of these kind of shortcuts would be extremely bad practice in an actual compiler, but these shortcuts were taken to write it within the timeframe of a single hackathon.
+
+set,=0
+set+=,
+set*=+
+set+=+++*+**,,
+print+
+pass(es) the unit tests, fails against real code
