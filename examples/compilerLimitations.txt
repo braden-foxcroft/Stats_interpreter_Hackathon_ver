@@ -1,0 +1,11 @@
+
+# This is a program which parses and runs correctly, but only because of how many shortcuts we took in the compiler design. (since we wrote it during a time-pressured hackathon.)
+# To fix this, one would need to properly reserve keywords and operators, and check the validity of variable names.
+# Furthermore, the parser should validate whether each line ends where it thinks it does, instead of discarding any remaining tokens blindly.
+
+set,=0
+set+=,
+set*=+
+set+=+++*+**,,)
+print+
+pass works fine, but does not check where the line ends - this is why we can have an unmatched close bracket on line 9

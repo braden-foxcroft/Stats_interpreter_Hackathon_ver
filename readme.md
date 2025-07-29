@@ -5,7 +5,7 @@ This project was made during a 6-hour hackathon. The project is an interpreter f
 
 #### 'bychance' vs 'where'
 
-In the language, there are two keywords, `bychance` and `where`. The keyword `where` is used for certainty: when a given criteria is guaranteed to be met. Meanwhile, `bychance` is used for conditional probability. (When we know an event _did_ happen, but that it wasn't _guaranteed_ to happen)
+In the language, there are two keywords, `bychance` and `where`. The keyword `where` is used for certainty: when a given criteria is guaranteed to be met. Meanwhile, `bychance` is used for *conditional probability*. (When we know an event _did_ happen, but that it wasn't _guaranteed_ to happen)
 
 #### How do I run it?
 
@@ -21,4 +21,4 @@ for a list of arguments.
 
 #### What next?
 
-This was a one-day hackathon project, but I plan to start again and do it better (without time constraints, and thus without shortcuts). I plan to post it on my github at a later point.
+This was a one-day hackathon project, but I plan to start again and make a more complete version (without taking shortcuts in the design of the compiler, with a more practical language design, etc.) I plan to add it to my github in the future.
